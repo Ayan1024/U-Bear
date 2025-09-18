@@ -1,379 +1,66 @@
 # U-Bear Backend API Documentation
 
-This document describes the available user-related API routes for the backend service.
+This document provides a concise overview of the U-Bear backend API, including user and captain-specific endpoints.
 
 ---
 
-## Endpoints
+## 👨‍💻 User Endpoints
 
-### 1. Register User
+### User Registration
+- **POST** `/users/register`
+- **Request Body:** `fullname`, `email`, `password`
+- **Success:** `201 Created` with `token` and `user` data
+- **Error:** `400 Bad Request`
 
-**POST** `/users/register`
+### User Login
+- **POST** `/users/login`
+- **Request Body:** `email`, `password`
+- **Success:** `200 OK` with `token` and `user` data
+- **Error:** `401 Unauthorized`
 
-Registers a new user.
+### Get User Profile
+- **GET** `/users/profile`
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Success:** `200 OK` with `user` profile data
+- **Error:** `401 Unauthorized`
 
-#### Request Body
-
-```json
-{
-  "fullname": {
-    "firstname": "John",
-    "lastname": "Doe"
-  },
-  "email": "john@example.com",
-  "password": "yourpassword"
-}
-```
-
-#### Success Response
-
-- **Status:** 201 Created
-
-```json
-{
-  "token": "<JWT_TOKEN>",
-  "user": {
-    "_id": "...",
-    "fullname": {
-      "firstname": "John",
-      "lastname": "Doe"
-    },
-    "email": "john@example.com",
-    "socketId": null
-  }
-}
-```
-
-#### Error Response
-
-- **Status:** 400 Bad Request
-
-```json
-{
-  "errors": [
-    { "msg": "First name must be at least 3 characters long", ... }
-  ]
-}
-```
+### User Logout
+- **GET** `/users/logout`
+- **Success:** `200 OK` with a "Logout successful" message
+- **Error:** `400 Bad Request`
 
 ---
 
-### 2. Login User
+## 🚗 Captain Endpoints
 
-**POST** `/users/login`
+### Captain Registration
+- **POST** `/captains/register`
+- **Request Body:** `fullname`, `email`, `password`, `vehicle` details
+- **Success:** `201 Created` with `token` and `captain` data
+- **Error:** `400 Bad Request`
 
-Authenticates a user and returns a JWT token (also sets a cookie).
+### Captain Login
+- **POST** `/captains/login`
+- **Request Body:** `email`, `password`
+- **Success:** `200 OK` with `token` and `captain` data
+- **Error:** `401 Unauthorized`
 
-#### Request Body
+### Get Captain Profile
+- **GET** `/captains/profile`
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Success:** `200 OK` with `captain` profile data
+- **Error:** `401 Unauthorized`
 
-```json
-{
-  "email": "john@example.com",
-  "password": "yourpassword"
-}
-```
-
-#### Success Response
-
-- **Status:** 200 OK
-
-```json
-{
-  "token": "<JWT_TOKEN>",
-  "user": {
-    "_id": "...",
-    "fullname": {
-      "firstname": "John",
-      "lastname": "Doe"
-    },
-    "email": "john@example.com",
-    "socketId": null
-  }
-}
-```
-
-#### Error Response
-
-- **Status:** 401 Unauthorized
-
-```json
-{
-  "message": "Invalid email or password"
-}
-```
+### Captain Logout
+- **GET** `/captains/logout`
+- **Success:** `200 OK` with a "Logout successful" message
+- **Error:** `400 Bad Request`
 
 ---
 
-### 3. Get User Profile
+## 📝 General Notes
 
-**GET** `/users/profile`
-
-Returns the authenticated user's profile. Requires authentication.
-
-#### Headers
-
-```
-Authorization: Bearer <JWT_TOKEN>
-```
-
-#### Success Response
-
-- **Status:** 200 OK
-
-```json
-{
-  "_id": "...",
-  "fullname": {
-    "firstname": "John",
-    "lastname": "Doe"
-  },
-  "email": "john@example.com",
-  "socketId": null
-}
-```
-
-#### Error Response
-
-- **Status:** 401 Unauthorized
-
-```json
-{
-  "message": "Not authorized, token failed"
-}
-```
-
----
-
-### 4. Logout User
-
-**GET** `/users/logout`
-
-Logs out the user by blacklisting the token and clearing the cookie.
-
-#### Success Response
-
-- **Status:** 200 OK
-
-```json
-{
-  "message": "Logout successful"
-}
-```
-
-#### Error Response
-
-- **Status:** 400 Bad Request
-
-```json
-{
-  "message": "No token provided"
-}
-```
-
----
-
-## Notes
-
-- All endpoints return JSON responses.
-- Authentication is required for `/profile` and `/logout` endpoints.
-- JWT tokens are valid for 7 days.
-- Logout blacklists the token for 7 days.
-
----
-
-
-## Captain Endpoints
-
-### 1. Register Captain
-
-**POST** `/captains/register`
-
-Registers a new captain.
-
-#### Request Body
-```json
-{
-  "fullname": {
-    "firstname": "Jane",
-    "lastname": "Smith"
-  },
-  "email": "jane@example.com",
-  "password": "yourpassword",
-  "vehicle": {
-    "color": "Red",
-    "plate": "ABC123",
-    "capacity": 4,
-    "vehicleType": "car"
-  }
-}
-```
-
-#### Success Response
-- **Status:** 201 Created
-```json
-{
-  "token": "<JWT_TOKEN>",
-  "captain": {
-    "_id": "...",
-    "fullname": {
-      "firstname": "Jane",
-      "lastname": "Smith"
-    },
-    "email": "jane@example.com",
-    "socketId": null,
-    "status": "inactive",
-    "vehicle": {
-      "color": "Red",
-      "plate": "ABC123",
-      "capacity": 4,
-      "vehicleType": "car"
-    },
-    "location": {
-      "ltd": null,
-      "lng": null
-    }
-  }
-}
-```
-
-#### Error Response
-- **Status:** 400 Bad Request
-```json
-{
-  "errors": [
-    { "msg": "First name must be at least 3 characters long", ... }
-  ]
-}
-```
-
----
-
-### 2. Login Captain
-
-**POST** `/captains/login`
-
-Authenticates a captain and returns a JWT token (also sets a cookie).
-
-#### Request Body
-```json
-{
-  "email": "jane@example.com",
-  "password": "yourpassword"
-}
-```
-
-#### Success Response
-- **Status:** 200 OK
-```json
-{
-  "token": "<JWT_TOKEN>",
-  "captain": {
-    "_id": "...",
-    "fullname": {
-      "firstname": "Jane",
-      "lastname": "Smith"
-    },
-    "email": "jane@example.com",
-    "socketId": null,
-    "status": "inactive",
-    "vehicle": {
-      "color": "Red",
-      "plate": "ABC123",
-      "capacity": 4,
-      "vehicleType": "car"
-    },
-    "location": {
-      "ltd": null,
-      "lng": null
-    }
-  }
-}
-```
-
-#### Error Response
-- **Status:** 401 Unauthorized
-```json
-{
-  "message": "Invalid email or password"
-}
-```
-
----
-
-### 3. Get Captain Profile
-
-**GET** `/captains/profile`
-
-Returns the authenticated captain's profile. Requires authentication.
-
-#### Headers
-```
-Authorization: Bearer <JWT_TOKEN>
-```
-
-#### Success Response
-- **Status:** 200 OK
-```json
-{
-  "_id": "...",
-  "fullname": {
-    "firstname": "Jane",
-    "lastname": "Smith"
-  },
-  "email": "jane@example.com",
-  "socketId": null,
-  "status": "inactive",
-  "vehicle": {
-    "color": "Red",
-    "plate": "ABC123",
-    "capacity": 4,
-    "vehicleType": "car"
-  },
-  "location": {
-    "ltd": null,
-    "lng": null
-  }
-}
-```
-
-#### Error Response
-- **Status:** 401 Unauthorized
-```json
-{
-  "message": "Not authorized, token failed"
-}
-```
-
----
-
-### 4. Logout Captain
-
-**GET** `/captains/logout`
-
-Logs out the captain by blacklisting the token and clearing the cookie. Requires authentication.
-
-#### Success Response
-- **Status:** 200 OK
-```json
-{
-  "message": "Logout successful"
-}
-```
-
-#### Error Response
-- **Status:** 400 Bad Request
-```json
-{
-  "message": "No token provided"
-}
-```
-
----
-
-## Notes (Captain)
-- All endpoints return JSON responses.
-- Authentication is required for `/profile` and `/logout` endpoints.
-- JWT tokens are valid for 24 hours for captains.
-- Logout blacklists the token for 7 days.
-
-Ayan1024
+* All API responses are in **JSON** format.
+* The `/profile` and `/logout` endpoints for both users and captains require **authentication** using a JWT token in the `Authorization` header.
+* **JWT token validity:** 7 days for users, 24 hours for captains.
+* Logging out blacklists the token for 7 days for both users and captains.
