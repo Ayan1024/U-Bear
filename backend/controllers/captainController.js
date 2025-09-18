@@ -1,82 +1,91 @@
-import userModel from "../models/userModel.js";
-import { createUser } from "../services/userService.js";
 import blacklistToken from "../models/blacklistToken.js";
+import captainModel from "../models/captainModel.js";
+import { createCaptain } from "../services/captainService.js";
 import { validationResult } from "express-validator";
 
-export const userRegister = async (req, res, next) => {
+export const captainRegister = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { fullname, email, password } = req.body;
+    const { fullname, email, password, vehicle } = req.body;
 
-   const isUserExist = await userModel.findOne({ email })
-    if(isUserExist){
-        return res.status(400).json({message: "User already exist"})
+    const isCaptainExist = await captainModel.findOne({ email });
+    if (isCaptainExist) {
+      return res.status(400).json({ message: "Captain already exist" });
     }
-    const hashedPassword = await userModel.hashPassword(password);
 
-    const user = await createUser({
+    const hashedPassword = await captainModel.hashPassword(password);
+
+    const captain = await createCaptain({
       fullname: {
         firstname: fullname.firstname,
         lastname: fullname.lastname,
       },
       email,
       password: hashedPassword,
+      vehicle: {
+        // wrap these inside 'vehicle'
+        color: vehicle.color,
+        plate: vehicle.plate,
+        capacity: vehicle.capacity,
+        vehicleType: vehicle.vehicleType,
+      },
     });
 
-    const token = user.generateAuthToken();
+    const token = captain.generateAuthToken();
 
-    res.status(201).json({ token, user });
+    res.status(201).json({ token, captain });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-export const userLogin = async (req, res, next) => {
+export const captainLogin = async (req, res, next) => {
   try {
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const { email, password } = req.body;
 
-    const user = await userModel.findOne({ email }).select("+password");
+    const captain = await captainModel.findOne({ email }).select("+password");
 
-    if (!user) {
+    if (!captain) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    const isMatch = await user.comparePassword(password);
+
+    const isMatch = await captain.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = user.generateAuthToken();
+    const token = captain.generateAuthToken();
 
-   res.cookie("token", token, {
-  httpOnly: true,   // prevents client-side JS access
-  secure: process.env.NODE_ENV === "production", // only over HTTPS in prod
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-    res.status(200).json({ token, user });
+    res.status(200).json({ token, captain });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-export const getUserProfile = async (req, res, next) => {
+export const getCaptainProfile = async (req, res, next) => {
   try {
-    res.status(200).json(req.user);
+    res.status(200).json(req.user); // assuming auth middleware attaches captain to req.user
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-export const userLogout = async (req, res, next) => {
+export const captainLogout = async (req, res, next) => {
   try {
     // Get token from cookie or header first
     const token =
